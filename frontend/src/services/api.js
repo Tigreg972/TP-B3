@@ -1,14 +1,17 @@
-const API_URL = "http://localhost:8000/api";
+const API_URL = "http://127.0.0.1:8000/api"; // ← adresse Django par défaut (127.0.0.1 plutôt que localhost)
 
 export const api = {
   async request(endpoint, options = {}) {
-    const res = await fetch(`${API_URL}${endpoint}`, options);
-    let data = null;
+    const url = endpoint.startsWith("http")
+      ? endpoint
+      : `${API_URL}${endpoint}`;
+    const res = await fetch(url, options);
 
+    let data = null;
     try {
       data = await res.json();
     } catch {
-
+      // pas grave si pas de JSON (ex: DELETE sans contenu)
     }
 
     if (!res.ok) {
@@ -17,6 +20,7 @@ export const api = {
         data?.message ||
         data?.error ||
         (typeof data === "string" ? data : `Erreur ${res.status}`);
+      console.error("API error:", msg, data);
       throw new Error(msg);
     }
     return data;
@@ -47,5 +51,5 @@ export const api = {
   },
 };
 
-// alias pour compatibilité
+// Alias pratique
 api.delete = api.del;

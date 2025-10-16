@@ -8,16 +8,41 @@ def new_deck():
     random.shuffle(deck)
     return deck
 
+def _rank_of(card: str) -> str:
+    """Extrait le rang proprement: 'J♠' -> 'J', '10♥' -> '10'."""
+    if not card:
+        return ""
+    suit = card[-1]
+    rank = card[:-1] if suit in SUITS else card
+    return rank.strip().upper()
+
 def hand_value(hand: list[str]) -> int:
-    vals = []
+    """Calcule la valeur d'une main en gérant les As (11 -> 1 si > 21)."""
+    total = 0
+    aces = 0
+
     for c in hand:
-        r = c[:-1]
-        vals.append({'A':11,'K':10,'Q':10,'J':10}.get(r, int(r)))
-    total = sum(vals)
-    aces = sum(1 for c in hand if c[:-1] == 'A')
-    while total > 21 and aces:
+        r = _rank_of(c)
+
+        if r == 'A':
+            total += 11
+            aces += 1
+        elif r in {'K', 'Q', 'J'}:
+            total += 10
+        elif r in {'10'}: 
+            total += 10
+        else:
+            try:
+                total += int(r)
+            except ValueError:
+               
+                raise ValueError(f"Rang invalide: {r!r} (carte: {c!r})")
+
+    
+    while total > 21 and aces > 0:
         total -= 10
         aces -= 1
+
     return total
 
 def draw(deck: list[str], n: int = 1):
